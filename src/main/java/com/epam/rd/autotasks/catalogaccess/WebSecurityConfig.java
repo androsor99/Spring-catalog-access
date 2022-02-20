@@ -6,17 +6,26 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
+import static com.epam.rd.autotasks.catalogaccess.domain.Role.EMPLOYEE;
+import static com.epam.rd.autotasks.catalogaccess.domain.Role.MANAGER;
+
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private static final String MANAGER = "MANAGER";
-    private static final String EMPLOYEE = "EMPLOYEE";
-    private static final String CUSTOMER = "CUSTOMER";
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-
+        http
+                .csrf().disable()
+                .authorizeRequests()
+                .antMatchers(HttpMethod.GET, "/employees", "/employees/*").hasAnyRole(MANAGER.name(), EMPLOYEE.name())
+                .antMatchers(HttpMethod.POST, "/employees").hasRole(MANAGER.name())
+                .antMatchers("/salaries").hasRole(MANAGER.name())
+                .antMatchers("/salaries/my").hasAnyRole(MANAGER.name(), EMPLOYEE.name())
+                .antMatchers("/catalog").permitAll()
+                .anyRequest()
+                .authenticated()
+                .and()
+                .httpBasic();
     }
-
 }
